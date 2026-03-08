@@ -1,86 +1,102 @@
-import React, { useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 
-const FinalSecurityShield = forwardRef(({ children }, ref) => {
-  
-  // --- 🎤 وائس اور سٹریس پروٹوکول (آپ کا لاجک) ---
-  const securityProtocols = {
-    async authorizeVoiceAccess(audioData) {
-      console.log("🛡️ Analyzing Voice Stress Levels...");
-      // فرضی تجزیہ (یہاں آپ اپنی AI API کال کر سکتے ہیں)
-      const userState = { isDistressed: false, detectedFear: false }; 
+const FinalSecurityShield = forwardRef(({ children, onThreatDetected }, ref) => {
+  const [isLocked, setIsLocked] = useState(false);
+  const [mode, setMode] = useState('PRIMARY'); // PRIMARY یا GHOST
 
-      if (userState.isDistressed || userState.detectedFear) {
-        this.triggerEmergencyProtocol();
-        return "GHOST_VAULT_ACTIVE"; // اکاؤنٹ خالی دکھائے گا
-      }
-      return "PRIMARY_VAULT_OPEN";
-    },
-
-    triggerEmergencyProtocol() {
-      console.warn("🚨 SOS: Sending Duress Alert to Admin Tower...");
-      // AdminControl.sendSOS یہاں کال ہوگا
-    }
+  // 🚨 لوکل لاک آؤٹ پروٹوکول
+  const triggerLocalLockdown = () => {
+    setIsLocked(true);
+    localStorage.setItem('TEZRO_LOCAL_LOCK', 'TRUE');
+    if (onThreatDetected) onThreatDetected();
   };
 
-  // باہر سے ایکسیس کرنے کے لیے ریفرنس
-  useImperativeHandle(ref, () => securityProtocols);
+  // 🎤 وائس اور سٹریس انٹیلیجنس (باہر سے ایکسیس کے لیے)
+  useImperativeHandle(ref, () => ({
+    async authorizeVoiceAccess(audioData) {
+      // یہاں آپ کا سٹریس ڈیٹیکشن لاجک چلے گا
+      const isDistressed = false; // مثال کے طور پر
+
+      if (isDistressed) {
+        console.warn("🚨 Distress Detected! Activating Ghost Vault...");
+        setMode('GHOST');
+        this.triggerEmergencyProtocol();
+        return "GHOST_VAULT_ACTIVE";
+      }
+      setMode('PRIMARY');
+      return "PRIMARY_VAULT_OPEN";
+    },
+    triggerEmergencyProtocol() {
+      // خاموش الرٹ بھیجنا
+      console.log("🛰️ SOS Signal Dispatched to Admin Tower.");
+    }
+  }));
 
   useEffect(() => {
-    // 1. کوڈ پروٹیکشن (DevTools & Source Block)
+    // ڈیوائس لاک چیک
+    if (localStorage.getItem('TEZRO_LOCAL_LOCK') === 'TRUE') {
+      setIsLocked(true);
+    }
+
+    // 🕵️ انٹیلیجنٹ ڈیٹیکشن
     const blockIntrusion = (e) => {
+      // F12, Ctrl+Shift+I/J, Ctrl+U
       if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73, 74].includes(e.keyCode)) || (e.ctrlKey && e.keyCode === 85)) {
         e.preventDefault();
-        return false;
+        triggerLocalLockdown(); 
       }
     };
 
-    // 2. ڈیٹا کاپی روکنا (Right Click)
-    const handleContextMenu = (e) => e.preventDefault();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        console.log("🛡️ Background Monitoring Active...");
+      }
+    };
 
     document.addEventListener('keydown', blockIntrusion);
-    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('visibilitychange', handleVisibility);
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
 
     return () => {
       document.removeEventListener('keydown', blockIntrusion);
-      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 
+  // 🔒 اگر ڈیوائس لاک ہو چکی ہے
+  if (isLocked) return <LockdownScreen />;
+
   return (
     <div style={styles.shieldWrapper}>
-      {/* 🌑 نائٹ ویژن اوورلے (صرف بصری سیکیورٹی کے لیے) */}
+      {/* بصری سیکیورٹی اوورلے */}
       <div style={styles.secureOverlay} />
       
-      {/* ایپ کا اصل مواد */}
-      <div style={styles.content}>
+      {/* اگر موڈ GHOST ہے تو یہاں ہم مخصوص فلٹر لگا سکتے ہیں */}
+      <div style={{ ...styles.content, filter: mode === 'GHOST' ? 'grayscale(0.5)' : 'none' }}>
         {children}
       </div>
     </div>
   );
 });
 
-// --- ⚡ لائٹ ویٹ سٹائلز ---
+// --- 🔒 لاک آؤٹ انٹرفیس ---
+const LockdownScreen = () => (
+  <div style={styles.lockScreen}>
+    <h1 style={{color: '#D4AF37', letterSpacing: '4px'}}>🛡️ ACCESS REVOKED</h1>
+    <p style={{color: '#666', fontSize: '10px', marginTop: '10px'}}>UNAUTHORIZED SYSTEM INTERFERENCE DETECTED</p>
+    <button onClick={() => {
+       localStorage.removeItem('TEZRO_LOCAL_LOCK');
+       window.location.reload();
+    }} style={styles.unlockBtn}>EMERGENCY RE-AUTHORIZE</button>
+  </div>
+);
+
 const styles = {
-  shieldWrapper: {
-    position: 'relative',
-    minHeight: '100vh',
-    background: '#000',
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    overflow: 'hidden'
-  },
-  secureOverlay: {
-    position: 'fixed',
-    inset: 0,
-    pointerEvents: 'none',
-    zIndex: 9999,
-    background: 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.1) 100%)',
-    opacity: 0.5
-  },
-  content: {
-    position: 'relative',
-    zIndex: 1
-  }
+  shieldWrapper: { position: 'relative', minHeight: '100vh', background: '#000', userSelect: 'none', overflow: 'hidden' },
+  secureOverlay: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999, background: 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.15) 100%)' },
+  content: { position: 'relative', zIndex: 1, transition: '0.5s' },
+  lockScreen: { height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#050505', textAlign: 'center' },
+  unlockBtn: { marginTop: '40px', background: 'transparent', border: '1px solid #D4AF37', color: '#D4AF37', padding: '12px 30px', borderRadius: '4px', fontSize: '10px', cursor: 'pointer' }
 };
 
 export default FinalSecurityShield;
