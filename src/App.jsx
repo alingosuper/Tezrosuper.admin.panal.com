@@ -1,13 +1,14 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext'; 
 import { useTheme } from './context/ThemeContext'; 
 
-// --- CORE SECURITY & ARCHITECTURE ---
+// --- CORE SECURITY & DATA ---
 import FinalSecurityShield from './security/FinalSecurityShield'; 
+import { GhostData } from './security/GhostData'; // 🎭 گوسٹ ڈیٹا امپورٹ
 import AppShell from './components/Navigation/AppShell'; 
 
-// --- LAZY COMPONENTS (All Features Retained) ---
+// --- LAZY COMPONENTS ---
 const HomePage = lazy(() => import('./website/pages/HomePage'));
 const InvestPage = lazy(() => import('./website/pages/InvestPage'));
 const FeaturesPage = lazy(() => import('./website/pages/FeaturesPage'));
@@ -21,11 +22,11 @@ const TezroVaultLedger = lazy(() => import('./bank_core/TezroVaultLedger'));
 const App = () => {
   const { user, role, loading } = useAuth();
   const { colors } = useTheme();
+  const shieldRef = useRef(null); // شیلڈ کے فنکشنز استعمال کرنے کے لیے
   
-  // 🔐 لوکل ڈیوائس سیکیورٹی سٹیٹ
   const [isDeviceSecure, setIsDeviceSecure] = useState(true);
+  const [isDistressed, setIsDistressed] = useState(false); // 🚨 اسٹریس/گوسٹ موڈ سٹیٹ
 
-  // لائیو چیک: اگر ڈیوائس پہلے سے لاک ہے
   useEffect(() => {
     const lockStatus = localStorage.getItem('TEZRO_LOCAL_LOCK');
     if (lockStatus === 'TRUE') setIsDeviceSecure(false);
@@ -35,55 +36,58 @@ const App = () => {
 
   return (
     <Router>
-      {/* 🛡️ شیلڈ پورے سسٹم کو مانیٹر کرے گی */}
       <FinalSecurityShield 
+        ref={shieldRef}
         onThreatDetected={() => {
           setIsDeviceSecure(false);
           localStorage.setItem('TEZRO_LOCAL_LOCK', 'TRUE');
         }}
+        // اگر شیلڈ اسٹریس ڈیٹیکٹ کرے تو اسے سٹیٹ میں سیٹ کریں
+        onDistressDetected={(status) => setIsDistressed(status)}
       >
         <Suspense fallback={<LoadingScreen />}>
           <div style={{ background: colors?.bg || '#000', minHeight: '100vh', color: '#fff' }}>
             
-            {/* 🚨 سمارٹ راؤٹنگ لاک ڈاؤن */}
             {isDeviceSecure ? (
               <Routes>
-                
-                {/* 🌐 پبلک زون (Website) */}
+                {/* 🌐 پبلک زون */}
                 <Route path="/" element={lazy(() => import('./website/WebsiteLayout'))}>
                   <Route index element={<HomePage />} />
                   <Route path="invest" element={<InvestPage />} />
                   <Route path="features" element={<FeaturesPage />} />
                 </Route>
 
-                {/* 🔐 آتھ زون */}
                 <Route path="/login" element={!user ? <Login /> : <Navigate to={role === 'admin' ? "/admin" : "/app"} />} />
 
-                {/* 🛡️ ایڈمن زون (Isolated Routing) */}
+                {/* 🛡️ ایڈمن زون - یہاں گوسٹ ڈیٹا کا سوئچ کام کرے گا */}
                 <Route path="/admin/*" element={user && role === 'admin' ? (
-                  <AppShell adminUser={user}> 
+                  <AppShell adminUser={user} isGhost={isDistressed}> 
                     <Routes>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="inventory" element={<InventoryManager theme={colors} />} />
-                      <Route path="finance" element={<TezroVaultLedger />} />
+                      <Route index element={<AdminDashboard isGhost={isDistressed} data={isDistressed ? GhostData.stats : null} />} />
+                      <Route path="inventory" element={<InventoryManager theme={colors} isGhost={isDistressed} />} />
+                      <Route path="finance" element={<TezroVaultLedger isGhost={isDistressed} ghostVault={GhostData.vault} />} />
                       <Route path="users" element={<div>System User Directory</div>} />
                     </Routes>
                   </AppShell>
                 ) : <Navigate to="/login" />} />
 
-                {/* 📱 سپر ایپ (Client Zone) */}
+                {/* 📱 سپر ایپ - کلائنٹ سائیڈ گوسٹ سوئچ */}
                 <Route path="/app/*" element={user ? (
                   <Routes>
-                    <Route index element={<HomeScreen />} />
-                    <Route path="banking" element={<div>Tezro Pay Core</div>} />
-                    <Route path="orders" element={<OrderHistory />} />
+                    <Route index element={<HomeScreen isGhost={isDistressed} />} />
+                    <Route path="banking" element={
+                        <div>
+                          {/* 🎭 گوسٹ بیلنس کا سوئچ */}
+                          <h2>Balance: {isDistressed ? GhostData.vault.totalBalance : "PKR 1,250,000"}</h2>
+                        </div>
+                    } />
+                    <Route path="orders" element={<OrderHistory isGhost={isDistressed} ghostOrders={GhostData.orders} />} />
                   </Routes>
                 ) : <Navigate to="/login" />} />
 
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             ) : (
-              /* 🔒 ڈیوائس لاک آؤٹ پیج (صرف اسی براؤزر پر نظر آئے گا) */
               <SecurityBreachScreen onUnlock={() => setIsDeviceSecure(true)} />
             )}
           </div>
@@ -93,7 +97,8 @@ const App = () => {
   );
 };
 
-// --- سیکیورٹی وارننگ کمپوننٹ ---
+// --- باقی کمپوننٹس (Loading, SecurityBreach, Styles) وہی رہیں گے جو آپ نے فراہم کیے ہیں ---
+
 const SecurityBreachScreen = ({ onUnlock }) => (
   <div style={styles.breachContainer}>
     <h1 style={{color: '#ff4444', fontSize: '24px'}}>🛡️ SECURITY LOCKOUT</h1>
