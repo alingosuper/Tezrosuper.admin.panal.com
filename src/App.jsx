@@ -49,14 +49,14 @@ const App = () => {
           <div style={{ background: colors?.bg || '#000', minHeight: '100vh', color: '#fff' }}>
             
             {isDeviceSecure ? (
-              <Routes>
-                {/* 🌐 پبلک زون */}
-                <Route path="/" element={lazy(() => import('./website/WebsiteLayout'))}>
-                  <Route index element={<HomePage />} />
-                  <Route path="invest" element={<InvestPage />} />
-                  <Route path="features" element={<FeaturesPage />} />
-                </Route>
-
+              <Routes> 
+{/* 🌐 پبلک زون کا درست طریقہ */}
+<Route path="/" element={<WebsiteLayout />}>
+  <Route index element={<HomePage />} /> {/* یہ اب صحیح کام کرے گا */}
+  <Route path="invest" element={<InvestPage />} />
+  <Route path="features" element={<FeaturesPage />} />
+</Route>
+                
                 <Route path="/login" element={!user ? <Login /> : <Navigate to={role === 'admin' ? "/admin" : "/app"} />} />
 
                 {/* 🛡️ ایڈمن زون - یہاں گوسٹ ڈیٹا کا سوئچ کام کرے گا */}
