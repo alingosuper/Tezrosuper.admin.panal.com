@@ -1,43 +1,54 @@
 import React, { useState } from 'react';
-import HomeHeader from './components/HomeHeader';
-import SuperSearchBar from './components/SuperSearchBar';
-import OrderHistory from './components/OrderHistory';
-import ProfilePage from './components/ProfilePage'; // فرضی پروفائل پیج
+import AdminDashboard from '../../screens/Admin/AdminDashboard';
+import InventoryManager from '../Admin/InventoryManager'; // آپ کا بنایا ہوا انوینٹری فارم
+import TezroVaultLedger from '../../bank_core/TezroVaultLedger';
+import FinalSecurityShield from '../../security/FinalSecurityShield';
 
-const AppShell = ({ user }) => {
-  const [activeTab, setActiveTab] = useState('Home');
+const AppShell = ({ adminUser }) => {
+  const [activeTab, setActiveTab] = useState('Dashboard');
 
-  // نیویگیشن کے مطابق سکرین کا انتخاب
+  // ایڈمن کنٹرول کے مطابق سکرین کا انتخاب
   const renderContent = () => {
     switch (activeTab) {
-      case 'Home':
-        return <HomeHeader />; // یہاں آپ کی مین ہوم اسکرین آئے گی
-      case 'Search':
-        return <SuperSearchBar />;
-      case 'Orders':
-        return <OrderHistory userId={user.uid} />;
-      case 'Profile':
-        return <ProfilePage user={user} />;
+      case 'Dashboard':
+        return <AdminDashboard />;
+      case 'Inventory':
+        return <InventoryManager theme={premiumTheme} />;
+      case 'Vault':
+        return <TezroVaultLedger />;
+      case 'Security':
+        return <FinalSecurityShield isAdmin={true} />;
       default:
-        return <HomeHeader />;
+        return <AdminDashboard />;
     }
   };
 
   const navItems = [
-    { id: 'Home', icon: '🏠', label: 'Home' },
-    { id: 'Search', icon: '🔍', label: 'Search' },
-    { id: 'Orders', icon: '📜', label: 'Orders' },
-    { id: 'Profile', icon: '👤', label: 'Profile' }
+    { id: 'Dashboard', icon: '📊', label: 'Monitor' },
+    { id: 'Inventory', icon: '📦', label: 'Products' },
+    { id: 'Vault', icon: '💰', label: 'Finance' },
+    { id: 'Security', icon: '🛡️', label: 'Security' }
   ];
+
+  const premiumTheme = { bg: '#0A0A0A', border: '#D4AF37', card: 'rgba(20,20,20,0.95)', text: '#F3E5AB' };
 
   return (
     <div style={styles.shellContainer}>
-      {/* 📱 Main Content Area */}
-      <div style={styles.mainScroll}>
-        {renderContent()}
-      </div>
+      {/* 🏛️ Master Command Header */}
+      <header style={styles.header}>
+        <div style={styles.logoContainer}>
+          <span style={styles.logoIcon}>⚡</span>
+          <h1 style={styles.logoText}>TEZRO <span style={{color: '#D4AF37'}}>MASTER</span></h1>
+        </div>
+        <div style={styles.statusDot}>LIVE CONTROL</div>
+      </header>
 
-      {/* 🧭 Professional Bottom Navigation Bar */}
+      {/* 📱 Main Dynamic Content Area */}
+      <main style={styles.mainScroll}>
+        {renderContent()}
+      </main>
+
+      {/* 🧭 Professional Admin Bottom Navigation */}
       <nav style={styles.bottomNav}>
         {navItems.map((item) => (
           <div 
@@ -45,11 +56,19 @@ const AppShell = ({ user }) => {
             onClick={() => setActiveTab(item.id)}
             style={{
               ...styles.navItem,
-              color: activeTab === item.id ? '#D4AF37' : '#888'
+              color: activeTab === item.id ? '#D4AF37' : '#555'
             }}
           >
-            <span style={{ fontSize: '20px' }}>{item.icon}</span>
-            <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: activeTab === item.id ? 'bold' : 'normal' }}>
+            <span style={{ fontSize: '22px', filter: activeTab === item.id ? 'drop-shadow(0 0 5px #D4AF37)' : 'none' }}>
+              {item.icon}
+            </span>
+            <span style={{ 
+              fontSize: '10px', 
+              marginTop: '5px', 
+              fontWeight: '900', 
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase'
+            }}>
               {item.label}
             </span>
             {activeTab === item.id && <div style={styles.activeIndicator} />}
@@ -65,47 +84,58 @@ const styles = {
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    background: '#000',
-    color: '#fff',
-    fontFamily: 'sans-serif',
+    background: '#050505',
+    color: '#F3E5AB',
     overflow: 'hidden'
   },
+  header: {
+    height: '60px',
+    background: '#000',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 20px',
+    borderBottom: '1px solid #1A1A1A'
+  },
+  logoContainer: { display: 'flex', alignItems: 'center', gap: '8px' },
+  logoIcon: { fontSize: '20px' },
+  logoText: { fontSize: '16px', fontWeight: '900', letterSpacing: '2px' },
+  statusDot: { fontSize: '9px', background: 'rgba(0,255,0,0.1)', color: '#00ff00', padding: '4px 8px', borderRadius: '10px', border: '1px solid #00ff00' },
   mainScroll: {
     flex: 1,
     overflowY: 'auto',
-    paddingBottom: '80px' // نیویگیشن بار کے لیے جگہ چھوڑنا
+    padding: '10px',
+    paddingBottom: '90px'
   },
   bottomNav: {
     position: 'fixed',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '70px',
-    background: 'rgba(26, 26, 26, 0.95)',
-    backdropFilter: 'blur(10px)',
+    height: '75px',
+    background: 'rgba(0, 0, 0, 0.98)',
+    backdropFilter: 'blur(20px)',
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    borderTop: '1px solid #333',
-    zIndex: 2000
+    borderTop: '2px solid #1A1A1A',
+    zIndex: 9999
   },
   navItem: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     cursor: 'pointer',
-    position: 'relative',
-    transition: 'all 0.3s ease',
-    width: '25%'
+    width: '25%',
+    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
   },
   activeIndicator: {
     position: 'absolute',
-    top: '-15px',
-    width: '4px',
-    height: '4px',
+    bottom: '-10px',
+    width: '30px',
+    height: '2px',
     background: '#D4AF37',
-    borderRadius: '50%',
-    boxShadow: '0 0 10px #D4AF37'
+    boxShadow: '0 0 15px #D4AF37'
   }
 };
 
