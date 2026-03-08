@@ -6,7 +6,6 @@ import { doc, updateDoc, onSnapshot, collection, query, where } from "firebase/f
 
 // --- EXTERNAL COMPONENTS ---
 import LivePerformance from './LivePerformance';
-import InventoryManager from '../../components/Admin/InventoryManager';
 
 const AdminDashboard = () => {
   const { colors } = useTheme();
@@ -115,13 +114,7 @@ const AdminDashboard = () => {
           </div>
         )}
         
-        {/* Tab 2: Audit Inventory (Vendor Context) */}
-        {activeTab === 'Inventory' && (
-          <div style={styles.fadeAnim}>
-             <InventoryManager theme={activeTheme} /> 
-             <p style={styles.auditNote}>🛡️ AUDIT MODE: Original data flows from Vendor Portal.</p>
-          </div>
-        )}
+        
         
         {/* Tab 3: Business Approvals */}
         {activeTab === 'Approvals' && (
