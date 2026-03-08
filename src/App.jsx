@@ -52,7 +52,6 @@ const App = () => {
   const { user, role, loading } = useAuth();
   const { colors } = useTheme();
   const shieldRef = useRef(null); 
-  const WebsiteLayout = lazy(() => import('./website/WebsiteLayout'));
 
   const [isDeviceSecure, setIsDeviceSecure] = useState(true);
   const [isDistressed, setIsDistressed] = useState(false); 
