@@ -1,31 +1,3 @@
-useEffect(() => {
-  console.group("🛡️ Tezro Security Audit & Diagnostics");
-  
-  // 1. چیک کریں کہ کیا لوکل لاک ایکٹو ہے
-  const lockStatus = localStorage.getItem('TEZRO_LOCAL_LOCK');
-  console.log("Device Lock Status:", lockStatus === 'TRUE' ? "🔴 LOCKED" : "🟢 SECURE");
-
-  // 2. چیک کریں کہ کیا کوئی پرانی انوینٹری یا بزنس فائل میموری میں ہے
-  const suspiciousFiles = [
-    'InventoryManager', 
-    'HotelRegCard', 
-    'BusinessRegistration'
-  ];
-  
-  // یہ چیک کرے گا کہ کیا ونڈو آبجیکٹ میں کوئی غیر متعلقہ ڈیٹا تو نہیں
-  suspiciousFiles.forEach(file => {
-    if (window[file]) {
-      console.warn(`⚠️ Warning: Suspicious legacy file detected in memory: ${file}`);
-    }
-  });
-
-  // 3. راؤٹ مانیٹرنگ
-  console.log("Current Path:", window.location.pathname);
-  console.log("User Role:", role || "Not Authenticated");
-
-  console.groupEnd();
-}, [role]);
-
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext'; 
@@ -36,17 +8,12 @@ import FinalSecurityShield from './security/FinalSecurityShield';
 import { GhostData } from './security/GhostData'; 
 import AppShell from './components/Navigation/AppShell'; 
 
-// --- LAZY COMPONENTS (SECURITY & AUDIT FOCUS) ---
-const HomePage = lazy(() => import('./website/pages/HomePage'));
-const InvestPage = lazy(() => import('./website/pages/InvestPage'));
-const FeaturesPage = lazy(() => import('./website/pages/FeaturesPage'));
+// --- LAZY COMPONENTS (صرف وہ جو موجود ہیں) ---
 const AdminDashboard = lazy(() => import('./screens/Admin/AdminDashboard'));
 const Login = lazy(() => import('./screens/Auth/Login'));
 const HomeScreen = lazy(() => import('./screens/HomeScreen'));
 const OrderHistory = lazy(() => import('./components/OrderHistory'));
 const TezroVaultLedger = lazy(() => import('./bank_core/TezroVaultLedger'));
-
-// نوٹ: InventoryManager اور دیگر بزنس کارڈز کے امپورٹس یہاں سے ہٹا دیے گئے ہیں۔
 
 const App = () => {
   const { user, role, loading } = useAuth();
@@ -56,6 +23,7 @@ const App = () => {
   const [isDeviceSecure, setIsDeviceSecure] = useState(true);
   const [isDistressed, setIsDistressed] = useState(false); 
 
+  // ڈائیگنوسٹک لاگ (صرف چیکنگ کے لیے)
   useEffect(() => {
     const lockStatus = localStorage.getItem('TEZRO_LOCAL_LOCK');
     if (lockStatus === 'TRUE') setIsDeviceSecure(false);
@@ -78,29 +46,22 @@ const App = () => {
             
             {isDeviceSecure ? (
               <Routes> 
-                {/* 🌐 پبلک زون */}
-                <Route path="/" element={<WebsiteLayout />}>
-                  <Route index element={<HomePage />} /> 
-                  <Route path="invest" element={<InvestPage />} />
-                  <Route path="features" element={<FeaturesPage />} />
-                </Route>      
+                {/* 🌐 پبلک زون (غیر موجود فائلوں کے بغیر) */}
+                <Route path="/" element={
+                  <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <h1 style={{ color: '#D4AF37', letterSpacing: '5px' }}>TEZRO CORE ACTIVE</h1>
+                  </div>
+                } />
 
                 <Route path="/login" element={!user ? <Login /> : <Navigate to={role === 'admin' ? "/admin" : "/app"} />} />
 
-                {/* 🛡️ MASTER ADMIN PANEL (Security & Audit Only) */}
+                {/* 🛡️ MASTER ADMIN PANEL (انوینٹری کے روٹس حذف کر دیے گئے ہیں) */}
                 <Route path="/admin/*" element={user && role === 'admin' ? (
                   <AppShell adminUser={user} isGhost={isDistressed}> 
                     <Routes>
-                      {/* مین ڈیش بورڈ صرف سیکیورٹی آڈٹ دکھائے گا */}
                       <Route index element={<AdminDashboard isGhost={isDistressed} data={isDistressed ? GhostData.stats : null} />} />
-                      
-                      {/* فنانس اور آڈٹ لاگز */}
                       <Route path="audit" element={<TezroVaultLedger isGhost={isDistressed} ghostVault={GhostData.vault} />} />
-                      
-                      {/* یوزرز کی ویریفیکیشن اور مانیٹرنگ */}
-                      <Route path="users" element={<div>System User Verification & Audit Logs</div>} />
-                      
-                      {/* انوینٹری اور رجسٹریشن کے تمام روٹس یہاں سے ختم کر دیے گئے ہیں */}
+                      <Route path="users" element={<div style={{padding: '20px'}}>System User Verification & Audit Logs</div>} />
                     </Routes>
                   </AppShell>
                 ) : <Navigate to="/login" />} />
@@ -110,7 +71,7 @@ const App = () => {
                   <Routes>
                     <Route index element={<HomeScreen isGhost={isDistressed} />} />
                     <Route path="banking" element={
-                        <div>
+                        <div style={{padding: '20px'}}>
                           <h2>Balance: {isDistressed ? GhostData.vault.totalBalance : "PKR 1,250,000"}</h2>
                         </div>
                     } />
@@ -131,7 +92,6 @@ const App = () => {
 };
 
 // --- REST OF THE COMPONENTS (STAY UNCHANGED) ---
-
 const SecurityBreachScreen = ({ onUnlock }) => (
   <div style={styles.breachContainer}>
     <h1 style={{color: '#ff4444', fontSize: '24px'}}>🛡️ SECURITY LOCKOUT</h1>
