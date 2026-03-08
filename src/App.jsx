@@ -52,8 +52,8 @@ const App = () => {
               <Routes> 
 {/* 🌐 پبلک زون کا درست طریقہ */}
 <Route path="/" element={<WebsiteLayout />}>
-  <Route index element={<HomePage />} /> {/* یہ اب صحیح کام کرے گا */}
-  <Route path="invest" element={<InvestPage />} />
+  // HomePage کی جگہ یہ عارضی لائن لکھیں
+  <Route index element={<div style={{padding: '100px', color: 'red'}}>ہیلو! یہ ہوم پیج ہے</div>} /> <Route path="invest" element={<InvestPage />} />
   <Route path="features" element={<FeaturesPage />} />
 </Route>
                 
