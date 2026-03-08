@@ -2,30 +2,104 @@
 <html lang="ur" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Alingo Admin - کنٹرول پینل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tezro Master - انوینٹری کنٹرول</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0A0A0A; color: #F3E5AB; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .premium-card { background: rgba(20, 20, 20, 0.95); border: 1px solid rgba(212, 175, 55, 0.3); box-shadow: 0 10px 50px rgba(0,0,0,0.8); }
+        .gold-input { background: #000; border: 1px solid #333; color: #D4AF37; }
+        .gold-input:focus { border-color: #D4AF37; outline: none; box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+        .btn-gold { background: linear-gradient(135deg, #D4AF37, #B8860B); color: black; font-weight: 900; transition: 0.3s; }
+        .btn-gold:hover { transform: scale(0.98); opacity: 0.9; }
+    </style>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg">
-        <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">نئی پروڈکٹ شامل کریں</h2>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-md w-full premium-card p-10 rounded-[40px]">
+        <div class="text-center mb-8">
+            <span class="text-4xl">📦</span>
+            <h2 class="text-2xl font-black italic uppercase tracking-widest mt-4">Inventory <span class="text-[#D4AF37]">Push</span></h2>
+            <p class="text-xs text-gray-500 mt-1 uppercase">Live App Synchronization</p>
+        </div>
         
-        <div class="space-y-4">
-            <input type="text" id="pName" placeholder="نام (مثلاً چکن بریانی)" class="w-full p-2 border rounded">
-            <input type="number" id="pPrice" placeholder="قیمت (Rs.)" class="w-full p-2 border rounded">
-            <select id="pCat" class="w-full p-2 border rounded">
-                <option value="food">کھانا</option>
-                <option value="grocery">گروسری</option>
-            </select>
-            <button onclick="saveProduct()" class="w-full bg-green-600 text-white py-2 rounded font-bold">ایپ پر اپلوڈ کریں</button>
+        <div class="space-y-5">
+            <div>
+                <label class="text-[10px] uppercase font-bold text-gray-400 mr-2">Product Name</label>
+                <input type="text" id="pName" placeholder="مثلاً چکن بریانی" class="w-full p-4 gold-input rounded-2xl text-lg">
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase font-bold text-gray-400 mr-2">Price (PKR)</label>
+                <input type="number" id="pPrice" placeholder="Rs. 0.00" class="w-full p-4 gold-input rounded-2xl text-lg">
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase font-bold text-gray-400 mr-2">Category</label>
+                <select id="pCat" class="w-full p-4 gold-input rounded-2xl">
+                    <option value="food">🍱 کھانا (Food)</option>
+                    <option value="grocery">🛒 گروسری (Grocery)</option>
+                    <option value="investment">📈 انویسٹمنٹ (Invest)</option>
+                </select>
+            </div>
+
+            <button onclick="saveProduct()" id="pushBtn" class="w-full btn-gold py-5 rounded-2xl shadow-lg shadow-amber-500/10">
+                LIVE APP پر اپلوڈ کریں
+            </button>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
     <script>
-        // یہاں بھی وہی Firebase Config آئے گی جو script.js میں ہے
-        function saveProduct() {
-            alert("Firebase کنیکٹ کرنے کے بعد یہ بٹن کام کرے گا!");
+        // آپ کا مخصوص Firebase Config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "tezrosuper.firebaseapp.com",
+            projectId: "tezrosuper",
+            storageBucket: "tezrosuper.appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function saveProduct() {
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const cat = document.getElementById('pCat').value;
+            const btn = document.getElementById('pushBtn');
+
+            if(!name || !price) {
+                alert("براہ کرم تمام معلومات درج کریں!");
+                return;
+            }
+
+            btn.innerText = "اپلوڈ ہو رہا ہے...";
+            btn.disabled = true;
+
+            try {
+                // ڈیٹا بیس میں محفوظ کرنا
+                await db.collection("products").add({
+                    name: name,
+                    price: Number(price),
+                    category: cat,
+                    status: 'active',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("✅ پروڈکٹ کامیابی سے ایپ پر اپلوڈ ہو گئی ہے!");
+                document.getElementById('pName').value = "";
+                document.getElementById('pPrice').value = "";
+            } catch (error) {
+                console.error("Error:", error);
+                alert("❌ اپلوڈ ناکام: سیکیورٹی رولز چیک کریں۔");
+            } finally {
+                btn.innerText = "LIVE APP پر اپلوڈ کریں";
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
