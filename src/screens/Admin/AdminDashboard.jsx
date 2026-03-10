@@ -1,39 +1,35 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-
   return (
-    <div style={{ backgroundColor: '#000', color: '#FFD700', minHeight: '100vh', padding: '20px', fontFamily: 'monospace' }}>
-      <header style={{ borderBottom: '2px solid #FFD700', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-        <h1 style={{ margin: 0 }}>🛡️ TEZRO SECURITY ENGINE</h1>
-        <button onClick={() => navigate('/login')} style={{ background: '#FFD700', border: 'none', padding: '5px 15px', cursor: 'pointer', fontWeight: 'bold' }}>Logout</button>
-      </header>
-
-      <main style={{ marginTop: '30px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-          <div style={{ border: '1px solid #333', padding: '20px', textAlign: 'center', background: '#111' }}>
-            <h3 style={{ color: '#aaa' }}>سیکیورٹی اسٹیٹس</h3>
-            <p style={{ fontSize: '2rem', color: '#00FF00' }}>ACTIVE</p>
-          </div>
-          <div style={{ border: '1px solid #333', padding: '20px', textAlign: 'center', background: '#111' }}>
-            <h3 style={{ color: '#aaa' }}>لائیو ٹریفک</h3>
-            <p style={{ fontSize: '2rem' }}>MONITORING</p>
-          </div>
+    <div>
+      <h1 style={{ color: '#FFD700' }}>مرکزی ڈیش بورڈ</h1>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '30px' }}>
+        {/* Repo 1: Tezro Web */}
+        <div style={{ border: '1px solid #FFD700', padding: '20px', borderRadius: '10px', background: '#050505' }}>
+          <h3>🌐 Tezro Website</h3>
+          <p>اسٹیٹس: <span style={{ color: '#00FF00' }}>آن لائن</span></p>
+          <button style={btnStyle}>ویب سائٹ میں ترمیم کریں</button>
         </div>
 
-        <section style={{ marginTop: '40px', background: '#050505', padding: '15px', border: '1px dotted #FFD700' }}>
-          <h2 style={{ fontSize: '1rem' }}>📡 سسٹم لاگز (System Logs)</h2>
-          <pre style={{ color: '#00FF00', fontSize: '0.8rem' }}>
-            [OK] Security Shield Initialized...
-            [OK] Anti-Fraud Engine Standby...
-            [OK] No unauthorized access detected.
-          </pre>
-        </section>
-      </main>
+        {/* Repo 2: Tezro App */}
+        <div style={{ border: '1px solid #FFD700', padding: '20px', borderRadius: '10px', background: '#050505' }}>
+          <h3>📱 Tezro Super App</h3>
+          <p>اسٹیٹس: <span style={{ color: '#00FF00' }}>فعال</span></p>
+          <button style={btnStyle}>ایپ کنٹرولز دیکھیں</button>
+        </div>
+      </div>
+
+      {/* Security Engine Notification */}
+      <div style={{ marginTop: '30px', padding: '20px', border: '1px dashed #FFD700', background: '#111' }}>
+        <h3 style={{ color: '#FFD700' }}>🛡️ سیکیورٹی الرٹ</h3>
+        <p style={{ fontSize: '0.9rem', color: '#00FF00' }}>[System]: تمام سسٹمز نارمل کام کر رہے ہیں۔ کوئی غیر قانونی رسائی نہیں ملی۔</p>
+      </div>
     </div>
   );
 };
+
+const btnStyle = { background: '#FFD700', color: '#000', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' };
 
 export default AdminDashboard;
